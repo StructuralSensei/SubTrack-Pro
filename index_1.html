@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubTrack Pro – Subscription Manager</title>
+<style>
+:root{--bg:#1a1410;--card:#241c16;--text:#f5ecdc;--muted:#b8a58a;--line:#3d2f23;--accent:#e8741c;--accent2:#d4a54a;--ok:#8fbf6a;--warn:#e8a33d;--bad:#d9573b;--shim:#3d2f23;--radius:14px;--shadow:0 6px 24px rgba(0,0,0,.45)}
+body.light{--bg:#f7f1e8;--card:#fffaf2;--text:#2a1f16;--muted:#7a6650;--line:#e6d9c4;--shim:#e6d9c4;--shadow:0 4px 18px rgba(80,50,20,.12)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 20px;height:60px}
+.brand{font-weight:700;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+nav{display:flex;gap:4px;flex:1;overflow-x:auto}
+nav button{background:none;border:0;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px;white-space:nowrap}
+nav button.active,nav button:hover{background:var(--bg);color:var(--text)}
+.badge{background:var(--bad);color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;margin-left:4px}
+main{max-width:1160px;margin:0 auto;padding:24px 20px 60px}
+.view{display:none}.view.active{display:block}
+h1{font-size:24px;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+.grid{display:grid;gap:16px}.k4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.k2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card h3{margin:0 0 12px;font-size:16px}
+.stat .label{color:var(--muted);font-size:13px}.stat .value{font-size:26px;font-weight:700;margin-top:4px}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 16px;cursor:pointer;font-size:14px}
+.btn:hover{filter:brightness(1.08)}.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:var(--bad)}.btn.sm{padding:5px 10px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font-size:14px}
+input:focus,select:focus{outline:2px solid var(--accent);border-color:transparent}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.field{margin-bottom:12px}.err{color:var(--bad);font-size:12px;min-height:14px;margin-top:3px}
+.bad-input{border-color:var(--bad)!important}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;background:var(--bg);border:1px solid var(--line)}
+.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+.bar{height:10px;background:var(--shim);border-radius:99px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.catrow{margin-bottom:12px}.catrow .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:10px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted)}
+.chart .col div.b{width:100%;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:6px 6px 2px 2px;min-height:2px}
+.rec{border-left:4px solid var(--accent);padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:10px;font-size:14px}
+.rec.warn{border-color:var(--warn)}.rec.bad{border-color:var(--bad)}.rec.ok{border-color:var(--ok)}
+.empty{text-align:center;padding:30px;color:var(--muted)}
+.skel{background:linear-gradient(90deg,var(--shim) 25%,var(--card) 50%,var(--shim) 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:8px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin:8px 0}.skel-block{height:90px}
+.hl{position:relative;z-index:1000;box-shadow:0 0 0 4px rgba(79,70,229,.45),0 0 0 9999px rgba(15,19,32,.55)!important;border-radius:10px}
+#tour{position:fixed;z-index:2000;max-width:300px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+#tour h4{margin:0 0 6px}#tour p{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:22px;max-width:520px;width:100%;max-height:85vh;overflow:auto;box-shadow:var(--shadow)}
+#toasts{position:fixed;bottom:18px;right:18px;z-index:4000;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--text);color:var(--card);padding:10px 14px;border-radius:9px;font-size:14px;box-shadow:var(--shadow)}
+.guide h4{margin:18px 0 6px}.guide ul{padding-left:20px;font-size:14px;line-height:1.6}
+.kbd{border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;background:var(--bg)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.toolbar input{max-width:260px}
+.toolbar select{width:auto}
+@media(max-width:640px){.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">SubTrack Pro</div>
+  <nav id="nav">
+    <button type="button" data-view="dashboard" class="active">Dashboard</button>
+    <button type="button" data-view="subs">Subscriptions</button>
+    <button type="button" data-view="reminders">Reminders <span class="badge" id="remBadge" style="display:none">0</span></button>
+    <button type="button" data-view="guide">User Guide</button>
+    <button type="button" data-view="about">About</button>
+    <button type="button" data-view="settings">Settings</button>
+  </nav>
+  <button type="button" class="btn ghost sm" id="undoBtn" title="Undo last change (Ctrl/Cmd+Z)">Undo</button>
+  <button type="button" class="btn ghost sm" id="themeBtn">Theme</button>
+  <button type="button" class="btn sm" id="addBtn">+ Add</button>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section class="view active" id="view-dashboard">
+    <h1>Dashboard</h1>
+    <p class="sub">Your subscription spend at a glance.</p>
+    <div id="dashLoading" class="grid k4">
+      <div class="card"><div class="skel skel-line"></div><div class="skel skel-block"></div></div>
+      <div class="card"><div class="skel skel-line"></div><div class="skel skel-block"></div></div>
+      <div class="card"><div class="skel skel-line"></div><div class="skel skel-block"></div></div>
+      <div class="card"><div class="skel skel-line"></div><div class="skel skel-block"></div></div>
+    </div>
+    <div id="dashContent" style="display:none">
+      <div class="grid k4" id="statCards"></div>
+      <div style="height:16px"></div>
+      <div class="grid k2">
+        <div class="card" id="cardTrend"><h3>12-month projection</h3><div class="chart" id="chart"></div></div>
+        <div class="card" id="cardCats"><h3>Spend by category</h3><div id="catBreak"></div></div>
+      </div>
+      <div style="height:16px"></div>
+      <div class="grid k2">
+        <div class="card"><h3>Upcoming renewals (30 days)</h3><div id="upcoming"></div></div>
+        <div class="card"><h3>Recommendations</h3><div id="recs"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIPTIONS -->
+  <section class="view" id="view-subs">
+    <h1>Subscriptions</h1>
+    <p class="sub">Every tool you pay for, in one list.</p>
+    <div class="toolbar">
+      <input id="search" placeholder="Search name or category…">
+      <select id="filterCat"><option value="">All categories</option></select>
+      <select id="sortBy">
+        <option value="renewal">Sort: next renewal</option>
+        <option value="cost">Sort: monthly cost</option>
+        <option value="name">Sort: name</option>
+      </select>
+      <button type="button" class="btn ghost sm" id="exportCsv">Export CSV</button> <button type="button" class="btn ghost sm" id="exportXero">Export Xero CSV</button>
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <div id="subsLoading">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div>
+      </div>
+      <table id="subsTable" style="display:none">
+        <thead><tr><th>Name</th><th class="hide-sm">Category</th><th>Cost</th><th class="hide-sm">Cycle</th><th>Next renewal</th><th>Monthly</th><th></th></tr></thead>
+        <tbody id="subsBody"></tbody>
+      </table>
+      <div id="subsEmpty" class="empty" style="display:none">No subscriptions yet. Click <b>+ Add</b> or load demo data in Settings.</div>
+    </div>
+  </section>
+
+  <!-- REMINDERS -->
+  <section class="view" id="view-reminders">
+    <h1>Reminders</h1>
+    <p class="sub">Renewals inside each subscription's reminder window appear here.</p>
+    <div class="card" id="remList"></div>
+  </section>
+
+  <!-- USER GUIDE -->
+  <section class="view" id="view-guide">
+    <h1>User Guide</h1>
+    <p class="sub">Learn the interface in about two minutes.</p>
+    <div class="grid k2">
+      <div class="card guide">
+        <h3>Getting around</h3>
+        <h4>Menu bar</h4>
+        <ul>
+          <li><b>Dashboard</b> shows totals, projections, renewals and recommendations.</li>
+          <li><b>Subscriptions</b> lists, searches, sorts and edits every entry.</li>
+          <li><b>Reminders</b> shows renewals that fall inside their reminder window.</li>
+          <li><b>Settings</b> sets your role, currency, and data tools.</li>
+        </ul>
+        <h4>Keyboard shortcuts</h4>
+        <ul>
+          <li><span class="kbd">N</span> add a new subscription</li>
+          <li><span class="kbd">/</span> jump to search</li>
+          <li><span class="kbd">Esc</span> close any open dialog</li>
+          <li><span class="kbd">Ctrl</span>/<span class="kbd">⌘</span> + <span class="kbd">Z</span> undo recent changes (up to 50), except while typing in a field</li>
+        </ul>
+        <div class="row" style="margin-top:12px"><button type="button" class="btn" id="replayTour">Replay guided tour</button></div>
+      </div>
+      <div class="card guide">
+        <h3>Working with data</h3>
+        <h4>Adding a subscription</h4>
+        <ul>
+          <li>Required fields are name, cost, cycle, and next renewal date.</li>
+          <li>The form warns you about invalid values and likely duplicates.</li>
+          <li>The monthly equivalent updates as you type.</li>
+        </ul>
+        <h4>Reminders</h4>
+        <ul>
+          <li>Set a lead time (1–30 days) per subscription.</li>
+          <li>Enable browser notifications in Settings to get alerts when the app is open.</li>
+        </ul>
+        <h4>Privacy</h4>
+        <ul>
+          <li>All data stays in your browser's local storage. Nothing is uploaded.</li>
+          <li>Export a JSON backup regularly, because clearing site data deletes everything.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card guide" style="margin-top:16px">
+      <h3>Interface elements</h3>
+      <ul>
+        <li><b>Gray shimmer blocks</b> mean content is loading. They disappear once data is ready.</li>
+        <li><b>Coloured pills</b> show status: green is more than a week away, amber is four to seven days away, red is three days or fewer, and "unused" is shown in red beside any subscription you marked as not used.</li>
+        <li><b>Bars</b> show each category's share of your total monthly spend.</li>
+        <li><b>Blue highlight ring during the tour</b> points to the element being explained. Press Next or Skip to continue.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="view" id="view-about">
+    <h1>About</h1>
+    <p class="sub">Version 1.0.0</p>
+    <div class="card guide">
+      <p>SubTrack Pro helps freelancers, business owners and engineers track the software and AI tools they pay for, so they can see what they spend and cut what they don't use.</p>
+      <p>It is a single HTML file. It needs no account, no server and no internet connection after the page loads. Your data never leaves your device.</p>
+      <p><b>Licence:</b> Copyright © 2026. See the LICENSE file in the distribution.</p>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings">
+    <h1>Settings</h1>
+    <p class="sub">Personalise recommendations and manage your data.</p>
+    <div class="grid k2">
+      <div class="card">
+        <h3>Profile</h3>
+        <div class="field"><label>Your role</label>
+          <select id="setRole"></select>
+          <input id="setRoleCustom" maxlength="40" placeholder="Or type your own role" style="margin-top:8px"></div>
+        <div class="field"><label>Display currency symbol</label>
+          <select id="setCur"></select>
+          <input id="setCurCustom" maxlength="6" placeholder="Or type a custom symbol" style="margin-top:8px"></div>
+        <div class="field"><label>Default reminder lead time (days)</label>
+          <input id="setLead" type="number" min="1" max="30" value="7"></div>
+        <button type="button" class="btn" id="saveSettings">Save settings</button>
+      </div>
+      <div class="card">
+        <h3>Data</h3>
+        <p class="sub">Back up, restore, or reset your data.</p>
+        <div class="row">
+          <button type="button" class="btn ghost" id="loadDemo">Load demo data</button>
+          <button type="button" class="btn ghost" id="exportJson">Export JSON</button>
+          <label class="btn ghost" style="margin:0;cursor:pointer">Import JSON<input type="file" id="importFile" accept="application/json" hidden></label>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row">
+          <button type="button" class="btn ghost" id="enableNotif">Enable notifications</button>
+          <button type="button" class="btn danger" id="wipe">Delete all data</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Add / Edit modal -->
+<div class="modal-bg" id="formModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <h3 id="formTitle" style="margin-top:0">Add subscription</h3>
+    <form id="subForm" novalidate>
+      <input type="hidden" id="fId">
+      <div class="field"><label>Subscription *</label>
+        <select id="fPreset"></select>
+        <input id="fName" maxlength="60" placeholder="Type a name" style="margin-top:8px"><div class="err" id="eName"></div></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Cost *</label><input id="fCost" type="number" step="0.01" min="0" placeholder="20"><div class="err" id="eCost"></div></div>
+        <div class="field"><label>Billing cycle *</label>
+          <select id="fCycle">
+            <option value="monthly">Monthly</option><option value="yearly">Yearly</option>
+            <option value="quarterly">Quarterly</option><option value="weekly">Weekly</option>
+          </select></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Next renewal *</label><input id="fNext" type="date"><div class="err" id="eNext"></div></div>
+        <div class="field"><label>Category</label>
+          <select id="fCat"></select></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Reminder (days before)</label><input id="fLead" type="number" min="1" max="30" value="7"><div class="err" id="eLead"></div></div>
+        <div class="field"><label>Used how often?</label>
+          <select id="fUse"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="rarely">Rarely</option><option value="unused">Not used</option></select></div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="fNotes" rows="2" maxlength="300"></textarea></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="pill" id="preview">Monthly: —</div>
+        <div class="row">
+          <button type="button" class="btn ghost" id="cancelForm">Cancel</button>
+          <button type="submit" class="btn">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="tour" style="display:none"><h4 id="tourTitle"></h4><p id="tourText"></p>
+  <div class="row" style="justify-content:space-between"><button type="button" class="btn ghost sm" id="tourSkip">Skip</button><button type="button" class="btn sm" id="tourNext">Next</button></div>
+</div>
+<div id="toasts"></div>
+
+<script>
+window.addEventListener("error", e => {
+  const t = document.getElementById("toasts");
+  if (t) {
+    const d = document.createElement("div");
+    d.className = "toast";
+    d.textContent = "App error: " + e.message;
+    t.appendChild(d);
+  }
+});
+
+(function() {
+"use strict";
+const KEY = "subtrack.pro.v1";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const MS = 86400000;
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseDate = s => {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return today();
+  const [y,m,d] = s.split("-").map(Number);
+  return new Date(y, m-1, d);
+};
+const fmtDate = d => d.toLocaleDateString(undefined, {year:"numeric", month:"short", day:"numeric"});
+
+const KNOWN_SUBS = [
+  {name:"ChatGPT Plus", cat:"AI tools", cost:20, cycle:"monthly"},
+  {name:"Claude Pro", cat:"AI tools", cost:20, cycle:"monthly"},
+  {name:"Claude Max", cat:"AI tools", cost:100, cycle:"monthly"},
+  {name:"Gemini Advanced", cat:"AI tools", cost:20, cycle:"monthly"},
+  {name:"Perplexity Pro", cat:"AI tools", cost:20, cycle:"monthly"},
+  {name:"Midjourney Basic", cat:"AI tools", cost:10, cycle:"monthly"},
+  {name:"GitHub Copilot", cat:"Developer tools", cost:10, cycle:"monthly"},
+  {name:"GitHub Pro", cat:"Developer tools", cost:4, cycle:"monthly"},
+  {name:"Cursor Pro", cat:"Developer tools", cost:20, cycle:"monthly"},
+  {name:"JetBrains All Products", cat:"Developer tools", cost:25, cycle:"monthly"},
+  {name:"Figma Professional", cat:"Design", cost:15, cycle:"monthly"},
+  {name:"Adobe Creative Cloud", cat:"Design", cost:60, cycle:"monthly"},
+  {name:"Canva Pro", cat:"Design", cost:13, cycle:"monthly"},
+  {name:"Notion Plus", cat:"Productivity", cost:10, cycle:"monthly"},
+  {name:"Slack Pro", cat:"Productivity", cost:9, cycle:"monthly"},
+  {name:"Microsoft 365 Business", cat:"Productivity", cost:12.5, cycle:"monthly"},
+  {name:"Google Workspace", cat:"Productivity", cost:12, cycle:"monthly"},
+  {name:"Zoom Pro", cat:"Productivity", cost:15, cycle:"monthly"},
+  {name:"Vercel Pro", cat:"Hosting & cloud", cost:20, cycle:"monthly"},
+  {name:"Netlify Pro", cat:"Hosting & cloud", cost:19, cycle:"monthly"},
+  {name:"DigitalOcean", cat:"Hosting & cloud", cost:12, cycle:"monthly"},
+  {name:"AWS Support", cat:"Hosting & cloud", cost:29, cycle:"monthly"},
+  {name:"Xero", cat:"Finance & admin", cost:20, cycle:"monthly"},
+  {name:"QuickBooks Online", cat:"Finance & admin", cost:30, cycle:"monthly"},
+  {name:"1Password Teams", cat:"Finance & admin", cost:8, cycle:"monthly"},
+  {name:"Dropbox Plus", cat:"Productivity", cost:12, cycle:"monthly"}
+];
+const ROLES = ["Freelancer","Business owner","Engineer"];
+const ISO_CODE = {"$":"USD","£":"GBP","€":"EUR","R":"ZAR","A$":"AUD","C$":"CAD","¥":"JPY","₹":"INR","CHF":"CHF","NZ$":"NZD","AED":"AED","₦":"NGN"};
+const CURRENCIES = [
+  {code:"$",label:"$ US dollar"},{code:"£",label:"£ Pound sterling"},{code:"€",label:"€ Euro"},
+  {code:"R",label:"R South African rand"},{code:"A$",label:"A$ Australian dollar"},{code:"C$",label:"C$ Canadian dollar"},
+  {code:"¥",label:"¥ Yen / Yuan"},{code:"₹",label:"₹ Indian rupee"},{code:"CHF",label:"CHF Swiss franc"},
+  {code:"NZ$",label:"NZ$ New Zealand dollar"},{code:"AED",label:"AED UAE dirham"},{code:"₦",label:"₦ Naira"}
+];
+const CYCLE_MULT = {weekly: 52/12, monthly: 1, quarterly: 1/3, yearly: 1/12};
+
+// Safe storage wrapper with in-memory fallback
+const memStore = {};
+const store = {
+  get(k) { try { return window.localStorage.getItem(k); } catch(e) { return memStore[k] || null; } },
+  set(k, v) { try { window.localStorage.setItem(k, v); } catch(e) { memStore[k] = v; } }
+};
+
+function defaults(){ return {subs: [], settings: {role:"Freelancer", cur:"$", lead:7, notif:false, theme:"dark"}, tourDone:false}; }
+function load(){
+  try {
+    const raw = store.get(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        subs: Array.isArray(parsed.subs) ? parsed.subs : [],
+        settings: {...defaults().settings, ...(parsed.settings || {})},
+        tourDone: Boolean(parsed.tourDone)
+      };
+    }
+  } catch(e){}
+  return defaults();
+}
+
+let state = load();
+let undoStack = [];
+
+function save(){ store.set(KEY, JSON.stringify(state)); }
+
+function toast(msg){
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ---- Money & date maths ----
+const monthly = s => Number(s.cost || 0) * (CYCLE_MULT[s.cycle] || 1);
+const yearly = s => monthly(s) * 12;
+const money = n => (state.settings.cur || "") + Number(n || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function nextRenewal(s){
+  let d = parseDate(s.next);
+  const t = today();
+  const step = {weekly:7, monthly:null, quarterly:null, yearly:null}[s.cycle];
+  let guard = 0;
+  while (d < t && guard++ < 500){
+    if (step) d = new Date(d.getTime() + step*MS);
+    else if (s.cycle==="monthly") d = new Date(d.getFullYear(), d.getMonth()+1, d.getDate());
+    else if (s.cycle==="quarterly") d = new Date(d.getFullYear(), d.getMonth()+3, d.getDate());
+    else d = new Date(d.getFullYear()+1, d.getMonth(), d.getDate());
+  }
+  return d;
+}
+const daysUntil = d => Math.round((d - today())/MS);
+
+// ---- Validation ----
+function validate(data, editingId){
+  const errs = {};
+  if (!data.name) errs.name = "Name is required.";
+  else if (state.subs.some(s => s.id!==editingId && s.name.toLowerCase()===data.name.toLowerCase()))
+    errs.name = "You already track a subscription with this name.";
+  if (data.cost === "" || isNaN(data.cost)) errs.cost = "Enter a valid cost.";
+  else if (Number(data.cost) < 0 || Number(data.cost) > 100000) errs.cost = "Cost must be between 0 and 100,000.";
+  if (!data.next) errs.next = "Choose a renewal date.";
+  const lead = Number(data.lead);
+  if (!Number.isInteger(lead) || lead<1 || lead>30) errs.lead = "Use a whole number from 1 to 30.";
+  return errs;
+}
+
+// ---- Views & navigation ----
+function show(view){
+  if (!["dashboard","subs","reminders","guide","about","settings"].includes(view)) view = "dashboard";
+  $$("#nav button").forEach(b => b.classList.toggle("active", b.dataset.view===view));
+  $$(".view").forEach(v => v.classList.toggle("active", v.id==="view-"+view));
+  if (view==="dashboard") renderDashboard();
+  if (view==="subs") renderSubs();
+  if (view==="reminders") renderReminders();
+  try { history.replaceState(null,"","#"+view); } catch(e){}
+}
+
+// Loading simulation with guaranteed skeleton cleanup
+function withLoading(loaderId, contentEl, fn){
+  const loader = $(loaderId);
+  if (loader) loader.style.display = "";
+  if (contentEl) contentEl.style.display = "none";
+  setTimeout(() => {
+    try { fn(); }
+    finally {
+      if (loader) loader.style.display = "none";
+      if (contentEl) contentEl.style.display = "";
+    }
+  }, 220);
+}
+
+// ---- Dashboard ----
+function renderDashboard(){
+  withLoading("#dashLoading", $("#dashContent"), () => {
+    const active = state.subs;
+    const mo = active.reduce((a,s)=>a+monthly(s),0);
+    const yr = mo*12;
+    const upcoming = active.map(s=>({s, d: nextRenewal(s)})).filter(x=>daysUntil(x.d)<=30).sort((a,b)=>a.d-b.d);
+    $("#statCards").innerHTML = `
+      <div class="card stat"><div class="label">Monthly spend</div><div class="value">${money(mo)}</div></div>
+      <div class="card stat"><div class="label">Yearly spend</div><div class="value">${money(yr)}</div></div>
+      <div class="card stat"><div class="label">Active subscriptions</div><div class="value">${active.length}</div></div>
+      <div class="card stat"><div class="label">Renewing in 30 days</div><div class="value">${upcoming.length}</div></div>`;
+
+    const max = Math.max(mo, 1);
+    const months = Array.from({length:12},(_,i)=>{ const d=new Date(); d.setMonth(d.getMonth()+i,1); return d; });
+    $("#chart").innerHTML = months.map(d => {
+      const h = Math.round((mo/max)*100);
+      return `<div class="col" title="${d.toLocaleDateString(undefined,{month:"short",year:"numeric"})}: ${money(mo)}"><div class="b" style="height:${h}%"></div>${d.toLocaleDateString(undefined,{month:"short"})}</div>`;
+    }).join("");
+
+    const cats = {};
+    active.forEach(s => cats[s.cat] = (cats[s.cat]||0) + monthly(s));
+    const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    $("#catBreak").innerHTML = entries.length ? entries.map(([c,v]) => {
+      const pct = mo ? (v/mo*100) : 0;
+      return `<div class="catrow"><div class="top"><span>${esc(c)}</span><span>${money(v)} · ${pct.toFixed(0)}%</span></div><div class="bar"><div style="width:${pct.toFixed(1)}%"></div></div></div>`;
+    }).join("") : `<div class="empty">No data yet.</div>`;
+
+    $("#upcoming").innerHTML = upcoming.length ? upcoming.map(({s,d}) => {
+      const n = daysUntil(d);
+      const cls = n<=3 ? "bad" : n<=7 ? "warn" : "ok";
+      return `<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(s.name)}</b><div class="sub" style="margin:0">${fmtDate(d)}</div></div><span class="pill ${cls}">${n===0?"Today":"in "+n+" d"} · ${money(s.cost)}</span></div>`;
+    }).join("") : `<div class="empty">Nothing renewing in the next 30 days.</div>`;
+
+    $("#recs").innerHTML = buildRecommendations().map(r => `<div class="rec ${r.level}"><b>${esc(r.title)}</b><br>${esc(r.body)}</div>`).join("") || `<div class="empty">Add subscriptions to get tailored advice.</div>`;
+  });
+}
+
+// ---- Recommendations (role-aware) ----
+function buildRecommendations(){
+  const recs = [];
+  const subs = state.subs;
+  if (!subs.length) return recs;
+  const role = String(state.settings.role).toLowerCase();
+  const mo = subs.reduce((a,s)=>a+monthly(s),0);
+  const yr = mo*12;
+
+  const unused = subs.filter(s => s.use==="unused");
+  if (unused.length) recs.push({level:"bad", title:"Cancel unused subscriptions", body:`${unused.map(s=>s.name).join(", ")} are marked as not used. Cancelling them would save about ${money(unused.reduce((a,s)=>a+yearly(s),0))} a year.`});
+
+  const rarely = subs.filter(s => s.use==="rarely");
+  if (rarely.length) recs.push({level:"warn", title:"Review rarely used tools", body:`You use ${rarely.map(s=>s.name).join(", ")} rarely. Consider pausing them or switching to a free tier.`});
+
+  subs.filter(s => s.cycle==="monthly" && s.cost>=10).forEach(s => {
+    recs.push({level:"", title:`Check annual pricing for ${s.name}`, body:`Paying yearly often saves 15–20%. Annual billing would save roughly ${money(s.cost*12*0.15)} to ${money(s.cost*12*0.2)} a year.`});
+  });
+
+  const ai = subs.filter(s => s.cat==="AI tools");
+  if (ai.length >= 2) recs.push({level:"warn", title:"Several AI tools overlap", body:`You pay for ${ai.length} AI tools totalling ${money(ai.reduce((a,s)=>a+monthly(s),0))} a month. Keep the one you use most and check whether the others add anything.`});
+
+  if (role.startsWith("freelanc")){
+    const biz = subs.filter(s => s.cat==="Finance & admin" || s.cat==="Productivity");
+    if (!biz.length) recs.push({level:"", title:"Track business expenses", body:"Freelancers can often claim software costs as business expenses. Keep invoices for each subscription at tax time."});
+  }
+  if (role.startsWith("business")){
+    const perSeat = subs.filter(s => /seat|team|business/i.test(s.name+" "+s.notes));
+    if (perSeat.length) recs.push({level:"warn", title:"Audit seat counts", body:"Per-seat plans often keep billing for people who have left. Review seat assignments each quarter."});
+  }
+  if (role.startsWith("engineer")){
+    const dev = subs.filter(s => s.cat==="Hosting & cloud" || s.cat==="Developer tools");
+    if (dev.length >= 3) recs.push({level:"warn", title:"Consolidate developer tooling", body:"Several hosting or dev tools are running. Check for overlapping features or idle environments you can shut down."});
+  }
+  if (mo > 0 && yr > 1200) recs.push({level:"bad", title:"High annual spend", body:`You spend about ${money(yr)} a year on subscriptions. Set a monthly budget and review it quarterly.`});
+  if (!recs.length) recs.push({level:"ok", title:"Looking good", body:"Your subscriptions look well managed. Review them again next quarter."});
+  return recs;
+}
+
+// ---- Reminders ----
+function activeReminders(){
+  return state.subs.map(s=>{ const d=nextRenewal(s); return {s,d,n:daysUntil(d)}; })
+    .filter(x => x.n <= (x.s.lead ?? state.settings.lead) && x.n >= 0)
+    .sort((a,b)=>a.d-b.d);
+}
+function updateReminderBadge(){
+  const list = activeReminders();
+  const b = $("#remBadge");
+  b.textContent = list.length;
+  b.style.display = list.length ? "" : "none";
+}
+function renderReminders(){
+  const list = activeReminders();
+  $("#remList").innerHTML = list.length ? list.map(({s,d,n}) =>
+    `<div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)">
+      <div><b>${esc(s.name)}</b> renews ${fmtDate(d)}<div class="sub" style="margin:0">Charge: ${money(s.cost)} (${s.cycle})</div></div>
+      <div class="row"><span class="pill ${n<=2?"bad":"warn"}">${n===0?"Today":"in "+n+" days"}</span>
+      <button type="button" class="btn ghost sm" data-edit="${s.id}">Review</button></div></div>`).join("")
+    : `<div class="empty">No renewals inside their reminder windows right now.</div>`;
+  updateReminderBadge();
+}
+function checkNotifications(){
+  if (!state.settings.notif || !("Notification" in window) || Notification.permission!=="granted") return;
+  const key = "subtrack.notified."+iso(today());
+  if (store.get(key)) return;
+  const list = activeReminders();
+  if (list.length){
+    new Notification("SubTrack Pro", {body: `${list.length} renewal(s) coming up soon.`});
+    store.set(key,"1");
+  }
+}
+
+// ---- Subscriptions table ----
+function renderSubs(){
+  withLoading("#subsLoading", $("#subsTable"), () => {
+    const q = $("#search").value.trim().toLowerCase();
+    const cat = $("#filterCat").value;
+    const sort = $("#sortBy").value;
+    let rows = state.subs.filter(s => (!q || (s.name+" "+s.cat).toLowerCase().includes(q)) && (!cat || s.cat===cat));
+    const withNext = rows.map(s=>({s, d: nextRenewal(s)}));
+    if (sort==="renewal") withNext.sort((a,b)=>a.d-b.d);
+    if (sort==="cost") withNext.sort((a,b)=>monthly(b.s)-monthly(a.s));
+    if (sort==="name") withNext.sort((a,b)=>a.s.name.localeCompare(b.s.name));
+    $("#subsBody").innerHTML = withNext.map(({s,d}) => `
+      <tr>
+        <td><b>${esc(s.name)}</b>${s.use==="unused"?' <span class="pill bad">unused</span>':""}</td>
+        <td class="hide-sm">${esc(s.cat)}</td>
+        <td>${money(s.cost)}</td>
+        <td class="hide-sm">${esc(s.cycle)}</td>
+        <td>${fmtDate(d)}</td>
+        <td>${money(monthly(s))}</td>
+        <td style="white-space:nowrap"><button type="button" class="btn ghost sm" data-edit="${s.id}">Edit</button> <button type="button" class="btn ghost sm" data-del="${s.id}">Delete</button></td>
+      </tr>`).join("");
+    $("#subsTable").style.display = withNext.length ? "" : "none";
+    $("#subsEmpty").style.display = state.subs.length ? (withNext.length ? "none" : "") : "";
+    $("#subsEmpty").textContent = state.subs.length ? "No matches for your search." : "No subscriptions yet. Click + Add or load demo data in Settings.";
+  });
+}
+["#search","#filterCat","#sortBy"].forEach(sel => $(sel).addEventListener("input", renderSubs));
+function refreshCategoryFilter(){
+  const cats = [...new Set(state.subs.map(s=>s.cat))].sort();
+  const cur = $("#filterCat").value;
+  $("#filterCat").innerHTML = `<option value="">All categories</option>` + cats.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("");
+}
+
+// ---- Global delegated click handler (guaranteed button responsiveness) ----
+document.addEventListener("click", e => {
+  const navBtn = e.target.closest("#nav button[data-view]");
+  if (navBtn) { show(navBtn.dataset.view); return; }
+
+  const edit = e.target.closest("[data-edit]");
+  if (edit) { const s = state.subs.find(x=>x.id===edit.dataset.edit); if (s) openForm(s); return; }
+
+  const del = e.target.closest("[data-del]");
+  if (del){
+    const s = state.subs.find(x=>x.id===del.dataset.del);
+    if (s && confirm(`Delete ${s.name}?`)){
+      commit(()=>{ state.subs = state.subs.filter(x=>x.id!==s.id); }, `Deleted ${s.name}.`);
+    }
+    return;
+  }
+
+  if (e.target.closest("#addBtn")) { openForm(null); return; }
+  if (e.target.closest("#undoBtn")) { undo(); return; }
+  if (e.target.closest("#themeBtn")) {
+    state.settings.theme = state.settings.theme === "light" ? "dark" : "light";
+    applyTheme();
+    save();
+    return;
+  }
+  if (e.target.closest("#cancelForm") || e.target.id === "formModal") { closeForm(); return; }
+  if (e.target.closest("#tourNext")) { showTourStep(tourIdx + 1); return; }
+  if (e.target.closest("#tourSkip")) { endTour(); return; }
+  if (e.target.closest("#replayTour")) { startTour(); return; }
+});
+
+// ---- Add/Edit form ----
+function openForm(s){
+  $("#formTitle").textContent = s ? "Edit subscription" : "Add subscription";
+  $("#fId").value = s?.id || "";
+  $("#fName").value = s?.name || "";
+  $("#fPreset").value = "";
+  $("#fCost").value = s?.cost ?? "";
+  $("#fCycle").value = s?.cycle || "monthly";
+  $("#fNext").value = s?.next || iso(today());
+  $("#fCat").value = s?.cat || "AI tools";
+  $("#fLead").value = s?.lead ?? state.settings.lead;
+  $("#fUse").value = s?.use || "weekly";
+  $("#fNotes").value = s?.notes || "";
+  $$(".err").forEach(e=>e.textContent="");
+  $$("#subForm input, #subForm select").forEach(i=>i.classList.remove("bad-input"));
+  updatePreview();
+  $("#formModal").classList.add("open");
+  setTimeout(()=>$("#fName").focus(), 50);
+}
+function closeForm(){ $("#formModal").classList.remove("open"); }
+function updatePreview(){
+  const c = Number($("#fCost").value); const cyc = $("#fCycle").value;
+  const m = (!isNaN(c) && c>0) ? c*(CYCLE_MULT[cyc]||1) : 0;
+  $("#preview").textContent = `Monthly: ${money(m)} · Yearly: ${money(m*12)}`;
+}
+["#fCost","#fCycle"].forEach(s=>$(s).addEventListener("input", updatePreview));
+
+$("#subForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const data = {
+    name: $("#fName").value.trim(),
+    cost: $("#fCost").value.trim(),
+    cycle: $("#fCycle").value,
+    next: $("#fNext").value,
+    cat: $("#fCat").value,
+    lead: $("#fLead").value,
+    use: $("#fUse").value,
+    notes: $("#fNotes").value.trim().slice(0,300)
+  };
+  const id = $("#fId").value || null;
+  const errs = validate(data, id);
+  const map = {name:"#fName",cost:"#fCost",next:"#fNext",lead:"#fLead"};
+  $$(".err").forEach(x=>x.textContent="");
+  $$("#subForm input").forEach(i=>i.classList.remove("bad-input"));
+  Object.entries(errs).forEach(([k,msg])=>{ $("#e"+k[0].toUpperCase()+k.slice(1)).textContent = msg; $(map[k]).classList.add("bad-input"); });
+  if (Object.keys(errs).length){ $(map[Object.keys(errs)[0]]).focus(); return; }
+
+  const rec = {id: id || uid(), name: data.name, cost: Number(data.cost), cycle: data.cycle, next: data.next,
+    cat: data.cat, lead: Number(data.lead), use: data.use, notes: data.notes};
+  commit(()=>{
+    if (id) state.subs = state.subs.map(s => s.id===id ? rec : s);
+    else state.subs.push(rec);
+  }, id ? "Subscription updated." : "Subscription added.");
+  closeForm();
+});
+
+// ---- State commit with undo ----
+function commit(fn, msg){
+  undoStack.push(JSON.stringify(state)); if (undoStack.length>50) undoStack.shift();
+  fn(); save(); refreshAll(); if (msg) toast(msg);
+}
+function undo(){
+  if (!undoStack.length) return toast("Nothing to undo.");
+  state = JSON.parse(undoStack.pop()); save(); loadSettingsForm(); refreshAll(); toast("Undone.");
+}
+
+function refreshAll(){
+  refreshCategoryFilter();
+  updateReminderBadge();
+  const active = document.querySelector("#nav button.active")?.dataset.view || "dashboard";
+  show(active);
+}
+
+// ---- Settings ----
+function applyTheme(){ document.body.classList.toggle("light", state.settings.theme==="light"); }
+function loadSettingsForm(){
+  loadSettingsFormRoleCur();
+  $("#setLead").value = state.settings.lead;
+  applyTheme();
+}
+$("#saveSettings").addEventListener("click", () => {
+  const lead = Number($("#setLead").value);
+  if (!Number.isInteger(lead)||lead<1||lead>30) return toast("Lead time must be 1–30 days.");
+  commit(() => {
+    const roleSel = $("#setRole").value;
+    const role = roleSel === "__custom" ? ($("#setRoleCustom").value.trim().slice(0,40) || "Freelancer") : roleSel;
+    const curSel = $("#setCur").value;
+    const cur = curSel === "__custom" ? ($("#setCurCustom").value.trim().slice(0,6) || "$") : curSel;
+    state.settings = {...state.settings, role, cur, lead};
+  }, "Settings saved.");
+});
+$("#enableNotif").addEventListener("click", async () => {
+  if (!("Notification" in window)) return toast("Notifications are not supported here.");
+  const p = await Notification.requestPermission();
+  state.settings.notif = p==="granted"; save();
+  toast(p==="granted" ? "Notifications enabled." : "Notifications were not allowed.");
+  if (p==="granted") checkNotifications();
+});
+$("#loadDemo").addEventListener("click", () => {
+  const d = today(); const plus = n => iso(new Date(d.getFullYear(), d.getMonth(), d.getDate()+n));
+  const demo = [
+    {name:"ChatGPT Plus", cost:20, cycle:"monthly", next:plus(3), cat:"AI tools", lead:7, use:"daily", notes:""},
+    {name:"Claude Pro", cost:20, cycle:"monthly", next:plus(12), cat:"AI tools", lead:7, use:"weekly", notes:""},
+    {name:"GitHub Copilot", cost:100, cycle:"yearly", next:plus(60), cat:"Developer tools", lead:14, use:"daily", notes:"Team seat"},
+    {name:"Figma Professional", cost:15, cycle:"monthly", next:plus(20), cat:"Design", lead:7, use:"weekly", notes:""},
+    {name:"Notion Plus", cost:10, cycle:"monthly", next:plus(5), cat:"Productivity", lead:7, use:"rarely", notes:""},
+    {name:"Vercel Pro", cost:20, cycle:"monthly", next:plus(18), cat:"Hosting & cloud", lead:5, use:"daily", notes:"Production hosting"},
+    {name:"Midjourney Basic", cost:10, cycle:"monthly", next:plus(2), cat:"AI tools", lead:5, use:"unused", notes:"Haven't generated images lately"}
+  ].map(x => ({id: uid(), ...x}));
+  commit(() => { state.subs = demo; }, "Demo data loaded.");
+});
+
+// ---- Export / Import / Wipe ----
+function download(filename, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+$("#exportJson").addEventListener("click", () => {
+  download(`subtrack-backup-${iso(today())}.json`, JSON.stringify(state, null, 2), "application/json");
+  toast("JSON backup exported.");
+});
+$("#importFile").addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || !Array.isArray(parsed.subs)) throw new Error("Invalid format");
+      const cleanSubs = parsed.subs.filter(s => s && typeof s.name==="string" && !isNaN(Number(s.cost))).map(s => ({
+        id: s.id || uid(),
+        name: String(s.name).slice(0,60),
+        cost: Number(s.cost),
+        cycle: CYCLE_MULT[s.cycle] ? s.cycle : "monthly",
+        next: /^\d{4}-\d{2}-\d{2}$/.test(s.next) ? s.next : iso(today()),
+        cat: String(s.cat || "Other"),
+        lead: Math.min(30, Math.max(1, Number(s.lead) || 7)),
+        use: ["daily","weekly","rarely","unused"].includes(s.use) ? s.use : "weekly",
+        notes: String(s.notes || "").slice(0,300)
+      }));
+      const ps = parsed.settings || {};
+      const safeSettings = {
+        role: String(ps.role ?? "Freelancer").slice(0,40),
+        cur: String(ps.cur ?? "$").slice(0,3),
+        lead: Math.min(30, Math.max(1, Number(ps.lead) || 7)),
+        notif: Boolean(ps.notif),
+        theme: ps.theme === "light" ? "light" : "dark"
+      };
+      commit(() => {
+        state = {
+          subs: cleanSubs,
+          settings: safeSettings,
+          tourDone: Boolean(parsed.tourDone)
+        };
+      }, `Imported ${cleanSubs.length} subscription(s).`);
+      loadSettingsForm();
+    } catch(err) {
+      toast("Invalid backup file.");
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+$("#exportCsv").addEventListener("click", () => {
+  if (!state.subs.length) return toast("No subscriptions to export.");
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [
+    ["Name","Category","Cost","Currency","Cycle","Next Renewal","Monthly Equivalent","Usage","Lead Days","Notes"].map(q).join(","),
+    ...state.subs.map(s => [
+      s.name, s.cat, Number(s.cost).toFixed(2), state.settings.cur, s.cycle,
+      iso(nextRenewal(s)), monthly(s).toFixed(2), s.use, s.lead, s.notes
+    ].map(q).join(","))
+  ];
+  download(`subtrack-subscriptions-${iso(today())}.csv`, rows.join("\n"), "text/csv;charset=utf-8");
+  toast("CSV exported.");
+});
+$("#wipe").addEventListener("click", () => {
+  if (!confirm("Delete all subscriptions and reset settings? This can be undone until you reload.")) return;
+  commit(() => {
+    const tourDone = state.tourDone;
+    state = {...defaults(), tourDone};
+  }, "All local data wiped.");
+  loadSettingsForm();
+});
+
+// ---- Guided tour ----
+const TOUR_STEPS = [
+  {el:"#nav", title:"Navigation bar", text:"Switch between Dashboard, Subscriptions, Reminders, User Guide, About, and Settings."},
+  {el:"#addBtn", title:"Add subscriptions", text:"Click here (or press N anytime) to log a new recurring tool with cost and renewal date."},
+  {el:"#cardTrend", title:"12-month projection", text:"See your projected monthly spend over the next year alongside category breakdowns."},
+  {el:"#themeBtn", title:"Light & dark theme", text:"Toggle between light and dark mode whenever you like."}
+];
+let tourIdx = -1;
+function clearTourHighlight(){ $$(".hl").forEach(el => el.classList.remove("hl")); }
+function endTour(){
+  clearTourHighlight();
+  $("#tour").style.display = "none";
+  tourIdx = -1;
+  state.tourDone = true;
+  save();
+}
+function showTourStep(idx){
+  clearTourHighlight();
+  if (idx >= TOUR_STEPS.length) return endTour();
+  tourIdx = idx;
+  const step = TOUR_STEPS[idx];
+  const target = $(step.el);
+  if (!target) return showTourStep(idx + 1);
+  target.classList.add("hl");
+  target.scrollIntoView({behavior:"smooth", block:"center"});
+  $("#tourTitle").textContent = `${step.title} (${idx + 1}/${TOUR_STEPS.length})`;
+  $("#tourText").textContent = step.text;
+  $("#tourNext").textContent = idx === TOUR_STEPS.length - 1 ? "Finish" : "Next";
+  const box = $("#tour");
+  box.style.display = "block";
+  const r = target.getBoundingClientRect();
+  const top = Math.min(window.innerHeight - box.offsetHeight - 16, Math.max(16, r.bottom + 12));
+  const left = Math.min(window.innerWidth - box.offsetWidth - 16, Math.max(16, r.left));
+  box.style.top = top + "px";
+  box.style.left = left + "px";
+}
+function startTour(){
+  show("dashboard");
+  setTimeout(() => showTourStep(0), 300);
+}
+
+// ---- Keyboard shortcuts ----
+document.addEventListener("keydown", e => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  const typing = tag === "input" || tag === "textarea" || tag === "select" || e.target.isContentEditable;
+  if (e.key === "Escape"){
+    if ($("#formModal").classList.contains("open")) closeForm();
+    if ($("#tour").style.display !== "none") endTour();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !typing && !e.shiftKey){
+    e.preventDefault();
+    undo();
+    return;
+  }
+  if (typing) return;
+  if (e.key.toLowerCase() === "n"){
+    e.preventDefault();
+    openForm(null);
+  } else if (e.key === "/"){
+    e.preventDefault();
+    show("subs");
+    setTimeout(() => $("#search").focus(), 260);
+  }
+});
+
+
+// ---- Dropdown population ----
+function populateSelects(){
+  $("#fPreset").innerHTML = `<option value="">Choose a known subscription…</option>` +
+    KNOWN_SUBS.map((k,i)=>`<option value="${i}">${esc(k.name)}</option>`).join("") +
+    `<option value="__custom">Other (type a name)</option>`;
+  const cats = [...new Set(["AI tools","Developer tools","Design","Productivity","Hosting & cloud","Finance & admin","Other", ...state.subs.map(s=>s.cat)])];
+  $("#fCat").innerHTML = cats.map(c=>`<option>${esc(c)}</option>`).join("");
+  $("#setRole").innerHTML = ROLES.map(r=>`<option>${esc(r)}</option>`).join("") + `<option value="__custom">Custom…</option>`;
+  $("#setCur").innerHTML = CURRENCIES.map(c=>`<option value="${esc(c.code)}">${esc(c.label)}</option>`).join("") + `<option value="__custom">Custom…</option>`;
+}
+$("#fPreset").addEventListener("change", e => {
+  const v = e.target.value;
+  if (v === "" || v === "__custom") { if (v === "__custom") $("#fName").value = ""; return; }
+  const k = KNOWN_SUBS[Number(v)];
+  $("#fName").value = k.name;
+  $("#fCat").value = k.cat;
+  $("#fCost").value = k.cost;
+  $("#fCycle").value = k.cycle;
+  updatePreview();
+});
+
+function currentRoleLabel(){ const r = state.settings.role; return ROLES.find(x=>x.toLowerCase()===String(r).toLowerCase()) || r; }
+function currentCurSymbol(){ return state.settings.cur || "$"; }
+
+function loadSettingsFormRoleCur(){
+  const known = ROLES.some(r=>r.toLowerCase()===String(state.settings.role).toLowerCase());
+  $("#setRole").value = known ? ROLES.find(r=>r.toLowerCase()===String(state.settings.role).toLowerCase()) : "__custom";
+  $("#setRoleCustom").style.display = known ? "none" : "";
+  $("#setRoleCustom").value = known ? "" : state.settings.role;
+  const knownCur = CURRENCIES.some(c=>c.code===state.settings.cur);
+  $("#setCur").value = knownCur ? state.settings.cur : "__custom";
+  $("#setCurCustom").style.display = knownCur ? "none" : "";
+  $("#setCurCustom").value = knownCur ? "" : state.settings.cur;
+}
+$("#setRole").addEventListener("change", e => { $("#setRoleCustom").style.display = e.target.value==="__custom" ? "" : "none"; });
+$("#setCur").addEventListener("change", e => { $("#setCurCustom").style.display = e.target.value==="__custom" ? "" : "none"; });
+
+// ---- Xero-style export ----
+$("#exportXero").addEventListener("click", () => {
+  if (!state.subs.length) return toast("No subscriptions to export.");
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const header = ["*ContactName","EmailAddress","POAddressLine1","POCity","POCountry","InvoiceNumber","Reference","*InvoiceDate","*DueDate","Total","Description","*Quantity","*UnitAmount","*AccountCode","*TaxType","TrackingName1","TrackingOption1","Currency"];
+  const rows = [header.map(q).join(",")];
+  state.subs.forEach((s,i) => {
+    const d = nextRenewal(s);
+    const due = iso(d);
+    const billed = iso(today());
+    rows.push([
+      s.name, "", "", "", "", `SUB-${String(i+1).padStart(4,"0")}`, s.cycle,
+      billed, due, Number(s.cost).toFixed(2),
+      `${s.cat} (${s.cycle}) - ${s.notes || ""}`.trim(), 1, Number(s.cost).toFixed(2),
+      "404", "Tax Exempt", s.cat, "Yes", ISO_CODE[state.settings.cur] || "USD"
+    ].map(q).join(","));
+  });
+  download(`subtrack-xero-${iso(today())}.csv`, rows.join("\n"), "text/csv;charset=utf-8");
+  toast("Xero CSV exported.");
+});
+
+// ---- Init ----
+populateSelects();
+loadSettingsForm();
+refreshCategoryFilter();
+updateReminderBadge();
+checkNotifications();
+const initialHash = location.hash.replace("#","");
+const validViews = ["dashboard","subs","reminders","guide","about","settings"];
+show(validViews.includes(initialHash) ? initialHash : "dashboard");
+if (!state.tourDone) setTimeout(startTour, 450);
+})();
+</script>
+</body>
+</html>
